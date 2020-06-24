@@ -67,7 +67,7 @@ static void MX_USART2_UART_Init(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-	uint8_t TxBuffer[50] = "Data Txing..\n\r";
+	uint8_t TxBuffer[50] = "UART active..\t";
 /* USER CODE END 0 */
 
 /**
@@ -108,9 +108,17 @@ int main(void)
   while (1)
   {
     /* USER CODE END WHILE */
-	  printf("%d seconds\n\r",count++);
-	  HAL_UART_Transmit(&huart2,TxBuffer,20,20);
-	  HAL_Delay(1000);
+
+
+	  if(HAL_GPIO_ReadPin(GPIOC,GPIO_PIN_13) == GPIO_PIN_RESET)
+	  {
+		  while(HAL_GPIO_ReadPin(GPIOC,GPIO_PIN_13) == GPIO_PIN_RESET);
+		  HAL_UART_Transmit(&huart2,TxBuffer,20,20);
+		  printf("count:%d\n\r",count++);
+		  HAL_GPIO_WritePin(GPIOA,GPIO_PIN_5,GPIO_PIN_SET);
+	  }
+	  HAL_GPIO_TogglePin(GPIOA,GPIO_PIN_5);
+	  HAL_Delay(100);
     /* USER CODE BEGIN 3 */
   }
   /* USER CODE END 3 */
