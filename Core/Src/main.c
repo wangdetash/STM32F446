@@ -77,8 +77,9 @@ static void MX_ADC1_Init(void);
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
    uint8_t RxBuffer[10];
-   uint32_t AdcValue;
-   float Voltage;
+   uint32_t AdcValue0,AdcValue1;
+   ADC_ChannelConfTypeDef sConfig = {0};
+   float Voltage0,Voltage1;
 /* USER CODE END 0 */
 
 /**
@@ -119,22 +120,34 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
+	  sConfig.Channel = ADC_CHANNEL_0;
+	  HAL_ADC_ConfigChannel(&hadc1, &sConfig);
 	  if(HAL_GPIO_ReadPin(GPIOC,GPIO_PIN_13) == GPIO_PIN_RESET)
 	  	  {
 		  	  while(HAL_GPIO_ReadPin(GPIOC,GPIO_PIN_13) == GPIO_PIN_RESET);
 		  	  HAL_GPIO_WritePin(GPIOA,GPIO_PIN_5,GPIO_PIN_SET);
-		  	  HAL_ADC_Start(&hadc1);
-		  	  if(HAL_ADC_PollForConversion(&hadc1,5) == HAL_OK)
-		  	  {
-		  		AdcValue = HAL_ADC_GetValue(&hadc1);
-		  		Voltage  = AdcValue*VOLT_CONV_FACTOR;
-		  		printf("Voltage:%ld * 10^-2 V\n\r",(uint32_t)(Voltage * 100));
-		  		/* printing voltage as integer since %f is not working in stm32 */
-		  	  }
 
 	  	  }
-	  	  HAL_GPIO_TogglePin(GPIOA,GPIO_PIN_5);
-	  	  HAL_Delay(100);
+	  HAL_GPIO_TogglePin(GPIOA,GPIO_PIN_5);
+	  HAL_Delay(1000);
+	  HAL_ADC_Start(&hadc1);
+	  if(HAL_ADC_PollForConversion(&hadc1,5) == HAL_OK)
+	  {
+	  		AdcValue0 = HAL_ADC_GetValue(&hadc1);
+	  		Voltage0  = AdcValue0*VOLT_CONV_FACTOR;
+	  		printf("V0:%ld V\t",(uint32_t)(Voltage0 * 100));
+	  		/* printing voltage as integer since %f is not working in stm32 */
+	  }
+	  sConfig.Channel = ADC_CHANNEL_1;
+	  HAL_ADC_ConfigChannel(&hadc1, &sConfig);
+	  HAL_ADC_Start(&hadc1);
+	  if(HAL_ADC_PollForConversion(&hadc1,5) == HAL_OK)
+	  {
+	  		AdcValue1 = HAL_ADC_GetValue(&hadc1);
+	  		Voltage1 = AdcValue1*VOLT_CONV_FACTOR;
+	  		printf("V1:%ld V\n\r",(uint32_t)(Voltage1 * 100));
+	  		/* printing voltage as integer since %f is not working in stm32 */
+	  }
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -198,8 +211,6 @@ static void MX_ADC1_Init(void)
 
   /* USER CODE END ADC1_Init 0 */
 
-  ADC_ChannelConfTypeDef sConfig = {0};
-
   /* USER CODE BEGIN ADC1_Init 1 */
 
   /* USER CODE END ADC1_Init 1 */
@@ -223,7 +234,7 @@ static void MX_ADC1_Init(void)
   }
   /** Configure for the selected ADC regular channel its corresponding rank in the sequencer and its sample time. 
   */
-  sConfig.Channel = ADC_CHANNEL_1;
+  sConfig.Channel = ADC_CHANNEL_0;
   sConfig.Rank = 1;
   sConfig.SamplingTime = ADC_SAMPLETIME_3CYCLES;
   if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
